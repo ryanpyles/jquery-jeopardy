@@ -1,0 +1,23 @@
+{
+  "name": "jquery-jeopardy",
+  "version": "1.0.0",
+  "description": "(*****jquery optional)",
+  "main": "main.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryanpyles/jquery-jeopardy.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ryanpyles/jquery-jeopardy/issues"
+  },
+  "homepage": "https://github.com/ryanpyles/jquery-jeopardy#readme",
+  "dependencies": {
+    "jquery": "^3.6.4"
+  }
+}

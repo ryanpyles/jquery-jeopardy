@@ -1,0 +1,90 @@
+body {
+    background-color: #0072C6;
+    color: white;
+    font-family: Arial, sans-serif;
+  }
+  
+  .title {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+    color: #FDB813;
+    text-shadow: 2px 2px #000000;
+  }
+  
+  .board {
+    margin: 20px auto;
+    border-collapse: collapse;
+  }
+  
+  .category {
+    width: 20%;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid white;
+  }
+  
+  .value {
+    width: 16%;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid white;
+  }
+  
+  .question {
+    width: 16%;
+    text-align: center;
+    font-size: 24px;
+    font-weight: bold;
+    border: 2px solid white;
+    cursor: pointer;
+  }
+  
+  .question:hover {
+    background-color: #FDB813;
+    color: #0072C6;
+  }
+  
+  .disabled {
+    background-color: #D3D3D3;
+    color: #A9A9A9;
+    cursor: default;
+  }
+  
+  .scoreboard {
+    margin: 20px auto;
+    text-align: center;
+    font-size: 48px;
+    font-weight: bold;
+  }
+  
+  .score-label {
+    color: #FDB813;
+    text-shadow: 2px 2px #000000;
+  }
+  
+  .score-value {
+    color: #FFFFFF;
+    text-shadow: 2px 2px #000000;
+  }
+  
+  .reset {
+    display: block;
+    margin: 20px auto;
+    font-size: 24px;
+    font-weight: bold;
+    background-color: #FFFFFF;
+    color: #0072C6;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+  }
+  
+  .reset:hover {
+    background-color: #0072C6;
+    color: white;
+  }
+  

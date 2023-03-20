@@ -42,7 +42,7 @@ For the base assignment, if the user clicks a $200 question, the app will displa
 #### 1. Create your files
 
 * Start off by creating an `index.html`, `main.js`, and `styles.css`
-* In `index.html`, add two `script` tags to import firt `jeopardy.json` followed by `main.js`
+* In `index.html`, add two `script` tags to import file `jeopardy.json` followed by `main.js`
 * Also add a `link` tag to import `styles.css`
 * Finally, if planning on using jquery, add `jquery` to your `index.html`. You can do this by adding the following line to your `<head>`
   * `<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>`  THIS IS OPTIONAL!
