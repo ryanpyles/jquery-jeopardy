@@ -1,68 +1,74 @@
 $(document).ready(function () {
   const board = $("#board");
   const url = "jeopardy.json";
-  const startButton = $("<button>").text("Start Game").addClass("start-button");
-  $("body").prepend(startButton);
+  const startButton = $(".start-button");
+  let score = 0;
+  const scoreDisplay = $("#score");
+
+  function updateScore(amount) {
+    score += amount;
+    scoreDisplay.text(score);
+  }
+
+  function getRandomShowNumber(data) {
+    const showNumbers = new Set();
+    data.forEach(item => showNumbers.add(item.showNumber));
+    const showNumbersArray = Array.from(showNumbers);
+    return showNumbersArray[Math.floor(Math.random() * showNumbersArray.length)];
+  }
 
   function startRound(roundNumber) {
     board.empty();
 
     $.getJSON(url, function (data) {
+      const randomShowNumber = getRandomShowNumber(data);
       const roundString = roundNumber === 1 ? "Jeopardy!" : "Double Jeopardy!";
 
-      const filteredData = data.filter(item => item.round === roundString && item.showNumber === 4680);
+      const filteredData = data.filter(item => item.round === roundString && item.showNumber === randomShowNumber);
       const categoriesMap = new Map();
 
-      // Group questions by category
-      filteredData.forEach((item) => {
+      filteredData.forEach(item => {
         if (!categoriesMap.has(item.category)) {
           categoriesMap.set(item.category, []);
         }
         categoriesMap.get(item.category).push(item);
       });
 
-      const categories = Array.from(categoriesMap.keys());
+      const categories = Array.from(categoriesMap.keys()).slice(0, 5);
 
-      for (let i = 0; i < categories.length && i < 5; i++) {
-        let header = $("<div>").addClass("cell header").text(categories[i]);
+      categories.forEach(category => {
+        const header = $("<div>").addClass("cell header").text(category);
         board.append(header);
+      });
 
-        const questions = categoriesMap.get(categories[i]).sort((a, b) => {
-          return parseInt(a.value.slice(1)) - parseInt(b.value.slice(1));
-        });
+      for (let j = 0; j < 5; j++) {
+        categories.forEach((category, index) => {
+          const questions = categoriesMap.get(category).sort((a, b) => parseInt(a.value.slice(1)) - parseInt(b.value.slice(1)));
+          const cell = $("<div>").addClass("cell").text(questions[j].value);
+          const question = $("<span>").addClass("question").text(questions[j].question).appendTo(cell);
+          const answer = questions[j].answer;
 
-        for (let j = 0; j < questions.length && j < 5; j++) {
-          let cell = $("<div>").addClass("cell").text(questions[j].value);
-          let question = $("<div>").addClass("question").text(questions[j].question);
-          let answer = questions[j].answer;
-          cell.append(question);
           cell.on("click", function () {
             let userAnswer = prompt(question.text());
             if (userAnswer && userAnswer.toLowerCase().trim() === answer.toLowerCase().trim()) {
               alert("Correct!");
+              updateScore(parseInt(questions[j].value.slice(1)));
             } else {
               alert("Incorrect! The correct answer is: " + answer);
             }
           });
+
           board.append(cell);
-        }
+        });
       }
     });
   }
 
   startButton.on("click", function () {
-    // Start first round
+    score = 0;
+    updateScore(0);
     startRound(1);
-
-    // Set a timer for the first round
-    setTimeout(function () {
-      alert("Round 1 is over. Starting Round 2!");
-      startRound(2);
-
-      // Set a timer for the second round
-      setTimeout(function () {
-        alert("Round 2 is over. Game completed!");
-      }, 10 * 60 * 1000); // 10 minutes for Round 2
-    }, 10 * 60 * 1000); // 10 minutes for Round 1
+    // You can add a delay or another button to start the second round
+    // startRound(2);
   });
 });
