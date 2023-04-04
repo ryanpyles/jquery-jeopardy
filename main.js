@@ -11,10 +11,42 @@ $(document).ready(function () {
   }
 
   function getRandomShowNumber(data) {
-    const showNumbers = new Set();
-    data.forEach(item => showNumbers.add(item.showNumber));
-    const showNumbersArray = Array.from(showNumbers);
-    return showNumbersArray[Math.floor(Math.random() * showNumbersArray.length)];
+    const validShowNumbers = new Set();
+    const categoriesPerRound = 5;
+    const questionsPerCategory = 5;
+
+    const roundData = ["Jeopardy!", "Double Jeopardy!"].map(round =>
+      data.filter(item => item.round === round)
+    );
+
+    roundData.forEach(roundItems => {
+      const showNumberCategories = new Map();
+
+      roundItems.forEach(item => {
+        if (!showNumberCategories.has(item.showNumber)) {
+          showNumberCategories.set(item.showNumber, new Set());
+        }
+        showNumberCategories.get(item.showNumber).add(item.category);
+      });
+
+      showNumberCategories.forEach((categories, showNumber) => {
+        if (categories.size === categoriesPerRound) {
+          const questionsPerShowCategory = Array.from(categories).every(category => {
+            const categoryQuestions = roundItems.filter(
+              item => item.showNumber === showNumber && item.category === category
+            );
+            return categoryQuestions.length === questionsPerCategory;
+          });
+
+          if (questionsPerShowCategory) {
+            validShowNumbers.add(showNumber);
+          }
+        }
+      });
+    });
+
+    const validShowNumbersArray = Array.from(validShowNumbers);
+    return validShowNumbersArray[Math.floor(Math.random() * validShowNumbersArray.length)];
   }
 
   function startRound(roundNumber) {
@@ -56,19 +88,41 @@ $(document).ready(function () {
             } else {
               alert("Incorrect! The correct answer is: " + answer);
             }
+            $(this).off("click").addClass("disabled").addClass("answered");
+            if (board.find(".cell:not(.header):not(.answered)").length === 0) {
+              board.trigger("roundFinished");
+            }
           });
 
           board.append(cell);
         });
       }
+
+      board.attr("data-round", roundNumber);
     });
+  }
+
+  function startNextRound(roundNumber) {
+    if (roundNumber <= 2) {
+      startRound(roundNumber);
+    } else {
+      alert("Game over! Your final score is: " + score);
+    }
   }
 
   startButton.on("click", function () {
     score = 0;
     updateScore(0);
-    startRound(1);
-    // You can add a delay or another button to start the second round
-    // startRound(2);
+    startNextRound(1);
+  });
+
+  board.on("roundFinished", function () {
+    const nextRound = confirm("Would you like to proceed to the next round?");
+    if (nextRound) {
+      const currentRound = parseInt(board.attr("data-round"));
+      startNextRound(currentRound + 1);
+    } else {
+      alert("Game over! Your final score is: " + score);
+    }
   });
 });

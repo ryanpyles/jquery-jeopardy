@@ -23,6 +23,12 @@ body {
   margin-bottom: 20px;
 }
 
+.disabled {
+  background-color: #808080;
+  color: #c0c0c0;
+  cursor: not-allowed;
+}
+
 .start-button:hover {
   background-color: #0056b3;
 }
