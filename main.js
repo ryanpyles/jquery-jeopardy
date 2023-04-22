@@ -15,9 +15,6 @@ $(document).ready(function () {
     const categoriesPerRound = 5;
     const questionsPerCategory = 5;
 
-    const roundData = ["Jeopardy!", "Double Jeopardy!"].map(round =>
-      data.filter(item => item.round === round)
-    );
 
     roundData.forEach(roundItems => {
       const showNumberCategories = new Map();
@@ -41,9 +38,6 @@ $(document).ready(function () {
           if (questionsPerShowCategory) {
             validShowNumbers.add(showNumber);
           }
-        }
-      });
-    });
 
     const validShowNumbersArray = Array.from(validShowNumbers);
     return validShowNumbersArray[Math.floor(Math.random() * validShowNumbersArray.length)];
