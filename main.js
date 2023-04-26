@@ -1,122 +1,121 @@
-$(document).ready(function () {
-  const board = $("#board");
-  const url = "jeopardy.json";
-  const startButton = $(".start-button");
-  let score = 0;
-  const scoreDisplay = $("#score");
+const gameBoard = $("#board");
+const scoreDisplay = $("#score-display");
+const startButton = $(".start-button");
+const apiUrl = "jeopardy.json";
 
-  function updateScore(amount) {
-    score += amount;
-    scoreDisplay.text(score);
+let score = 0;
+
+function updateScore(points) {
+  score += points;
+  scoreDisplay.text(score);
+}
+
+function levenshteinDistance(a, b) {
+  const matrix = [];
+
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+
+  for (let i = 0; i <= b.length; i++) {
+    matrix[i] = [i];
   }
 
-  function getRandomShowNumber(data) {
-    const validShowNumbers = new Set();
-    const categoriesPerRound = 5;
-    const questionsPerCategory = 5;
-
-
-    roundData.forEach(roundItems => {
-      const showNumberCategories = new Map();
-
-      roundItems.forEach(item => {
-        if (!showNumberCategories.has(item.showNumber)) {
-          showNumberCategories.set(item.showNumber, new Set());
-        }
-        showNumberCategories.get(item.showNumber).add(item.category);
-      });
-
-      showNumberCategories.forEach((categories, showNumber) => {
-        if (categories.size === categoriesPerRound) {
-          const questionsPerShowCategory = Array.from(categories).every(category => {
-            const categoryQuestions = roundItems.filter(
-              item => item.showNumber === showNumber && item.category === category
-            );
-            return categoryQuestions.length === questionsPerCategory;
-          });
-
-          if (questionsPerShowCategory) {
-            validShowNumbers.add(showNumber);
-          }
-
-    const validShowNumbersArray = Array.from(validShowNumbers);
-    return validShowNumbersArray[Math.floor(Math.random() * validShowNumbersArray.length)];
+  for (let j = 0; j <= a.length; j++) {
+    matrix[0][j] = j;
   }
 
-  function startRound(roundNumber) {
-    board.empty();
-
-    $.getJSON(url, function (data) {
-      const randomShowNumber = getRandomShowNumber(data);
-      const roundString = roundNumber === 1 ? "Jeopardy!" : "Double Jeopardy!";
-
-      const filteredData = data.filter(item => item.round === roundString && item.showNumber === randomShowNumber);
-      const categoriesMap = new Map();
-
-      filteredData.forEach(item => {
-        if (!categoriesMap.has(item.category)) {
-          categoriesMap.set(item.category, []);
-        }
-        categoriesMap.get(item.category).push(item);
-      });
-
-      const categories = Array.from(categoriesMap.keys()).slice(0, 5);
-
-      categories.forEach(category => {
-        const header = $("<div>").addClass("cell header").text(category);
-        board.append(header);
-      });
-
-      for (let j = 0; j < 5; j++) {
-        categories.forEach((category, index) => {
-          const questions = categoriesMap.get(category).sort((a, b) => parseInt(a.value.slice(1)) - parseInt(b.value.slice(1)));
-          const cell = $("<div>").addClass("cell").text(questions[j].value);
-          const question = $("<span>").addClass("question").text(questions[j].question).appendTo(cell);
-          const answer = questions[j].answer;
-
-          cell.on("click", function () {
-            let userAnswer = prompt(question.text());
-            if (userAnswer && userAnswer.toLowerCase().trim() === answer.toLowerCase().trim()) {
-              alert("Correct!");
-              updateScore(parseInt(questions[j].value.slice(1)));
-            } else {
-              alert("Incorrect! The correct answer is: " + answer);
-            }
-            $(this).off("click").addClass("disabled").addClass("answered");
-            if (board.find(".cell:not(.header):not(.answered)").length === 0) {
-              board.trigger("roundFinished");
-            }
-          });
-
-          board.append(cell);
-        });
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(matrix[i - 1][j - 1] + 1, matrix[i][j - 1] + 1, matrix[i - 1][j] + 1);
       }
+    }
+  }
 
-      board.attr("data-round", roundNumber);
+  return matrix[b.length][a.length];
+}
+
+function compareAnswers(userAnswer, correctAnswer) {
+  const normalizedUserAnswer = userAnswer.trim().toLowerCase();
+  const normalizedCorrectAnswer = correctAnswer.trim().toLowerCase();
+
+  const distance = levenshteinDistance(normalizedUserAnswer, normalizedCorrectAnswer);
+  const similarity = 1 - distance / Math.max(normalizedUserAnswer.length, normalizedCorrectAnswer.length);
+
+  return similarity >= 0.85;
+}
+
+function loadData(callback) {
+  fetch(apiUrl)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to load data.");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      callback(data);
+    })
+    .catch((error) => {
+      console.error(error);
+      alert("Failed to load data. Please try again later.");
     });
-  }
+}
 
-  function startNextRound(roundNumber) {
-    if (roundNumber <= 2) {
-      startRound(roundNumber);
-    } else {
-      alert("Game over! Your final score is: " + score);
-    }
-  }
+function createGameBoard(questions) {
+  gameBoard.empty();
 
-  startButton.on("click", function () {
-    score = 0;
-    updateScore(0);
-    startNextRound(1);
+  const showNumbers = [...new Set(questions.map((q) => q.showNumber))];
+  const randomShowNumber = showNumbers[Math.floor(Math.random() * showNumbers.length)];
+  const showQuestions = questions.filter((q) => q.showNumber === randomShowNumber && q.round === "Jeopardy!");
+  const categories = [...new Set(showQuestions.map((q) => q.category))];
+
+  categories.forEach((category) => {
+    const categoryQuestions = showQuestions.filter((q) => q.category === category);
+    categoryQuestions.sort((a, b) => parseInt(a.value.slice(1)) - parseInt(b.value.slice(1)));
+
+    const categoryDiv = $("<div class='column'></div>");
+    categoryDiv.append(`<div class='cell header'>${category}</div>`);
+
+    categoryQuestions.forEach((question) => {
+      const {value, question: questionPrompt, answer } = question;
+      const points = parseInt(value.slice(1));
+
+      const cell = $(`<div class='cell'>${value}</div>`);
+      cell.on("click", () => {
+        const userAnswer = prompt(questionPrompt);
+        if (userAnswer !== null) {
+          const isCorrect = compareAnswers(userAnswer, answer)
+          if (isCorrect) {
+            alert("Correct!");
+            updateScore(points);
+          } else {
+            alert(`Incorrect! The correct answer is: ${answer}`);
+          }
+          cell.addClass("disabled answered");
+          cell.off("click");
+
+          if (gameBoard.find(".cell:not(.header):not(.answered)").length === 0) {
+            gameBoard.trigger("roundFinished");
+          }
+        }
+      });
+      categoryDiv.append(cell);
+    });
+
+    gameBoard.append(categoryDiv);
   });
+}
 
-  board.on("roundFinished", function () {
-    const nextRound = confirm("Would you like to proceed to the next round?");
-    if (nextRound) {
-      const currentRound = parseInt(board.attr("data-round"));
-      startNextRound(currentRound + 1);
-    } else {
-      alert("Game over! Your final score is: " + score);
-    }
+function startGame() {
+  loadData((data) => {
+    createGameBoard(data);
   });
+}
+
+startButton.on("click", () => {
+  startGame();
 });
+
